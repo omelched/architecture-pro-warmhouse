@@ -1,0 +1,46 @@
+@startuml Component BFF
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+title C4 Диаграмма компонентов - Бэкенд для фронтенда
+
+Container(frontend, "Пользовательское веб-приложение", "TS, VueJs")
+Person_Ext(customer, "Пользователь системы")
+Person(admin, "Администратор системы")
+
+ContainerDb(database, "База данных", "PostgreSQL")
+ContainerQueue(redis, "Брокер сообщений", "redis")
+
+
+Container_Boundary(bffApi, "BFF API") {
+    Component(proxy, "HTTPS сервер", "Nginx", "Обслуживает HTTPS запросы")
+    Component(gunicorn, "HTTP сервер", "Python, Gunicorn", "Обслуживает HTTP запросы")
+
+    Component(djangoCore, "Django Core", "Python, Django", "Обслуживает WSGI запросы")
+    Component(djangoORM, "Django ORM", "Python, Django", "Взаимодействует с БД")
+    Component(djangoAuth, "django.contrib.auth", "Python, Django", "Управляет УЗ и правами доступа")
+    Component(djangoAdmin, "django.contrib.admin", "Python, Django", "Рендерит административную панель")
+
+    Component(apiRouter, "Роутер API", "Python, Django, DRF", "Исполняет методы, соответствующие API запросам")
+    
+    Component(celery, "Обработчик очереди сообщений", "Python, Django, Celery", "Обрабатывает сообщения из очереди")
+}
+
+Rel(frontend, proxy, "Запрашивает актуальные данные")
+Rel(customer, proxy, "Запрашивает данные по API")
+Rel(admin, proxy, "Администрирует систему")
+
+Rel(proxy, gunicorn, "Проксирует запросы")
+Rel(gunicorn, djangoCore, "Транслирует HTTP в WSGI")
+
+Rel(djangoCore, djangoAuth, "Идентификация, Аутентификация, Авторизация, Аккаунтинг")
+Rel(djangoCore, apiRouter, "Получает результат вызова API")
+Rel(djangoCore, djangoAdmin, "Запрашивает HTML, соответсвующий адмпинской панели")
+Rel(djangoORM, database, "Выполняет SQL запросы")
+Rel(djangoAuth, djangoORM, "Получает / изменяет данные о пользователях и правах")
+
+Rel(apiRouter, djangoORM, "Получает данные о датчиках")
+Rel(apiRouter, redis, "Публикует запрос на изменение состояния датчиков")
+
+Rel(celery, redis, "Подписывается на изменения состояния датчиков")
+Rel(celery, djangoORM, "Изменяет данные о датчиках")
+@enduml

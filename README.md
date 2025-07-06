@@ -59,15 +59,19 @@
 
 **Диаграмма контейнеров (Containers)**
 
-Добавьте диаграмму.
+[Диаграмма контейнеров](/schemas/Container/Container.puml)
 
 **Диаграмма компонентов (Components)**
 
-Добавьте диаграмму для каждого из выделенных микросервисов.
+[Диаграмма компонентов Frontend](/schemas/Component/Component_Frontend.puml)
+[Диаграмма компонентов BFF](/schemas/Component/Component_BFF.puml)
+[Диаграмма компонентов SensorAgent](/schemas/Component/Component_SensorAgent.puml)
 
 **Диаграмма кода (Code)**
 
-Добавьте одну диаграмму или несколько.
+[Диаграмма классов хранилища состояний веб-приложения](/schemas/Code/Code_Frontend_State_Management.puml)
+
+[Диаграмма последовательности для изменения состояния датчика](/schemas/Code/Code_Sensor_Update.puml)
 
 # Задание 3. Разработка ER-диаграммы
 

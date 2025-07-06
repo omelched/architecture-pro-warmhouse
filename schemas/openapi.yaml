@@ -1,0 +1,299 @@
+openapi: 3.0.4
+info:
+  title: Warmhouse Public API
+  description: Waemhouse public API
+  version: 0.1.0
+paths:
+  /user/login/:
+    post:
+      tags:
+        - auth
+      summary: Выпуск JWT-токенов
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserCredentials"
+      responses:
+        "200":
+          description: успех
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenPair"
+        "400":
+          description: Неверный логин / пароль
+  /user/refresh/:
+    post:
+      tags:
+        - auth
+      summary: Перевыпуск Access-токена
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refresh:
+                  type: string
+      responses:
+        "200":
+          description: успех
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenPair"
+        "400":
+          description: Неверный refresh токен
+
+  /devices/search/:
+    post:
+      tags:
+        - devices
+      summary: Выполняет поиск датчиков по фильтрам / параметрам.
+      parameters:
+        - $ref: "#/components/parameters/paginationLimit"
+        - $ref: "#/components/parameters/paginationOffset"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeviceFilter"
+      responses:
+        "200":
+          description: успех
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/GenericPaginationResponse"
+                  - type: object
+                    properties:
+                      objects:
+                        $ref: "#/components/schemas/Device"
+        "400":
+          description: ошибка в запросе
+  /devices/:
+    post:
+      tags:
+        - devices
+      summary: Создает новый датчик.
+      responses:
+        "200":
+          description: успех
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Device"
+        "400":
+          description: Ошибка в теле запроса
+  /devices/{pk}/:
+    get:
+      tags:
+        - devices
+      summary: Возвращает датчик найденный по primary key.
+      parameters:
+        - $ref: "#/components/parameters/primaryKey"
+      responses:
+        "200":
+          description: успех
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Device"
+        "404":
+          description: Датчик не найден или не хватает прав на доступ к датчику
+    patch:
+      tags:
+        - devices
+      summary: Частично обновляет данные датчика.
+      parameters:
+        - $ref: "#/components/parameters/primaryKey"
+
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Device"
+      responses:
+        "200":
+          description: успех
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Device"
+        "400":
+          description: Ошибка в теле запроса
+        "404":
+          description: Датчик не найден или не хватает прав на доступ к датчику
+    put:
+      tags:
+        - devices
+      summary: Полностью обновляет данные датчика.
+      parameters:
+        - $ref: "#/components/parameters/primaryKey"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Device"
+      responses:
+        "200":
+          description: успех
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Device"
+        "400":
+          description: Ошибка в теле запроса
+        "404":
+          description: Датчик не найден или не хватает прав на доступ к датчику
+
+  /devices/{pk}/change-state/:
+    post:
+      tags:
+        - devices
+      summary: Создает запрос на изменение состояние датчика.
+      parameters:
+        - $ref: "#/components/parameters/primaryKey"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeviceState"
+      responses:
+        "200":
+          description: успех
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message_id:
+                    type: string
+        "400":
+          description: Ошибка в теле запроса
+        "404":
+          description: Датчик не найден или не хватает прав на доступ к датчику
+
+components:
+  parameters:
+    paginationLimit:
+      name: limit
+      in: query
+      description: limit pagination
+      required: false
+      schema:
+        type: integer
+    paginationOffset:
+      name: offset
+      in: query
+      description: offset pagination
+      required: false
+      schema:
+        type: integer
+    primaryKey:
+      name: pk
+      in: path
+      description: primary key
+      required: true
+      schema:
+        type: string
+
+  schemas:
+    Reference:
+      type: object
+      properties:
+        id:
+          type: string
+        repr:
+          type: string
+
+    GenericPaginationResponse:
+      type: object
+      properties:
+        total_count:
+          type: integer
+        next_url:
+          type: string
+        pref_url:
+          type: string
+
+    UserCredentials:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        full_name:
+          type: string
+        permissions:
+          type: array
+          items:
+            type: string
+    TokenPair:
+      type: object
+      properties:
+        access:
+          type: string
+        refresh:
+          type: string
+        user_data:
+          $ref: "#/components/schemas/User"
+    DeviceState:
+      type: object
+      properties:
+        state:
+          type: array
+          items:
+            type: object
+            properties:
+              state_property_id:
+                $ref: "#/components/schemas/Reference"
+              serialized_value:
+                type: string
+              timestamp:
+                type: string
+                format: ISO datetime
+    Device:
+      type: object
+      properties:
+        id:
+          type: string
+        device_type_id:
+          $ref: "#/components/schemas/Reference"
+        house_id:
+          $ref: "#/components/schemas/Reference"
+        status:
+          type: string
+          readOnly: true
+        description:
+          type: string
+        state:
+          allOf:
+            - readOnly: true
+            - $ref: "#/components/schemas/DeviceState"
+    DeviceFilter:
+      type: object
+      properties:
+        device_type_id__in:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+
+  securitySchemes:
+    api_key:
+      type: apiKey
+      name: Bearer
+      in: header
+
+security:
+  - api_key: []

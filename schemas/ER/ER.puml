@@ -1,0 +1,78 @@
+@startuml ER СУБД
+
+skinparam linetype ortho
+
+entity "django_ContentType"  {
+    * pk: string <<generated>>
+    * app_label: string
+    * model_name: string
+}
+
+
+entity "django_User" {
+    * pk: string <<generated>>
+    * full_name: string
+    --
+    is_super_user: boolean
+    is_active: boolean
+    password_hash: string
+}
+
+entity "django_Permission" {
+    * pk: string <<generated>>
+    * content_type_id: string <<FK>>
+    * permision_name: string
+}
+
+"django_Permission" }|--|| "django_ContentType" 
+"django_Permission" }|--|| "django_User"  
+
+entity "house" {
+* pk: string <<generated>>
+* owner_id: string <<FK>>
+* name: string
+description: string
+}
+
+"house" }|--|| "django_User": owner_id
+"house" }|--|{ "django_User": house participants
+
+entity "device_type" {
+* pk: string <<generated>>
+* protocol: string <<ENUM>>
+}
+
+entity "device" {
+* pk: string <<generated>>
+* device_type_id: string <<FK>>
+* house_id: string <<FK>>
+* status: string <<ENUM>>
+description: string
+}
+
+"device" }|--|| "house"
+"device" }|--|| "device_type"
+
+
+entity "device_state_property" {
+* pk: string <<generated>>
+* device_type_id: string <<FK>>
+* property_name: string
+* property_type: string <<ENUM>>
+}
+
+"device_state_property" }|--|| "device_type"
+
+entity "device_state_ledger" {
+* pk: string <<generated>>
+* timestamp: datetime
+* device_id: string <<FK>>
+* state_property_id: string <<FK>>
+* serialized_value: string
+}
+
+"device_state_ledger" }|--|| "device"
+"device_state_ledger" }|--|| "device_state_property"
+
+
+@enduml

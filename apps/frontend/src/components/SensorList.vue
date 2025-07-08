@@ -26,7 +26,7 @@ const onAddDevice = () => {
         house={{ device.house_id }}
       </div>
       <div>
-        state={{ device.state }}
+        state={{ device.state.filter(state => state.property_name === 'value') }}
       </div>
       <div>
         status={{ device.status }}

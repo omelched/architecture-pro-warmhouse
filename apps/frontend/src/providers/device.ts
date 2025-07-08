@@ -4,13 +4,9 @@ interface Reference {
 }
 
 interface DeviceStateValue {
-  state_property_id: Reference
+  property_name: string
   serialized_value: string
   timestamp: string
-}
-
-interface DeviceState {
-  state: DeviceStateValue[]
 }
 
 export interface Device {
@@ -19,7 +15,7 @@ export interface Device {
   house_id: Reference
   status: string
   description: string
-  state: DeviceState
+  state: DeviceStateValue[]
 }
 
 export const useDeviceProvider = () => {

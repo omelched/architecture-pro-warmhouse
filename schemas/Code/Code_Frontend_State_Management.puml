@@ -1,0 +1,79 @@
+@startuml Code Frontend State Store
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+title Диаграмма кода - Хранилище состояние фронтенда
+
+enum SensorStatus {
+    OFFLINE
+    ONLINE
+}
+
+struct UserCredentials {
+    username: string
+    password: string
+}
+
+struct DjangoUser {
+    pk: string
+    full_name: string
+    permissions: string[]
+}
+
+class UserStore {
+    -accessToken: string
+    -refreshToken: string
+    -user: DjangoUser
+    -authHeaders: Map<string, string>
+
+    +login(credentials: UserCredentials): void
+    +logout(credentials: UserCredentials): void
+}
+
+UserStore --> DjangoUser : хранит данные о >
+UserStore ..> UserCredentials : использует для аутентификации >
+
+
+struct Sensor {
+    pk: string
+    name: string
+    desription: string
+    status: SensorStatus
+}
+
+Sensor --> SensorStatus
+
+class SensorListStore {
+    -lazyList: (Sensor | undefined)[]
+    -isLoading: boolean
+    -totalCount: number | undefined
+
+    +limit: number
+    +offset: number
+}
+
+SensorListStore --> Sensor: хранит данные о списке >
+
+class SensorDetailStore {
+    -object: Sensor | undefined
+    -objectDraft: Partial<Sensor>
+
+    +pk: string | undefined
+
+    +create(): void
+    +update(): void
+    +refresh(): void
+}
+
+
+SensorDetailStore --> Sensor: хранит данные о >
+
+class PiniaGlobalStore {
+    -userStore: UserStore
+    -sensorListStore: SensorListStore
+    -sensorDetailStore: SensorDetailStore
+}
+
+
+PiniaGlobalStore --> UserStore: хранит состояние >
+PiniaGlobalStore --> SensorListStore: хранит состояние >
+PiniaGlobalStore --> SensorDetailStore: хранит состояние >

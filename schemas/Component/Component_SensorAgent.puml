@@ -1,0 +1,38 @@
+@startuml Component SensorAgent
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+title C4 Диаграмма компонентов - SensorAgent
+
+
+ContainerQueue(redis, "Брокер сообщений", "redis")
+Container_Ext(sensor, "Датчик")
+
+
+Container_Boundary(bffApi, "BFF API") {
+    Component(proxy, "HTTPS сервер", "Nginx", "Обслуживает HTTPS запросы")
+
+    Component(uvicorn, "HTTP сервер", "Python, Uvicorn", "Обслуживает HTTP запросы")
+    Component(fastApiCore, "FastAPI Core", "Python, FastAPI", "Обслуживает ASGI запросы")
+    Component(apiRouter, "Роутер API", "Python, FastAPI", "Исполняет методы, соответствующие API запросам")
+    Component(websocketController, "WebSocket Controller", "Python, FastAPI", "Открывает и обслуживает WebSocket-взаимодействие с датчиком")
+    Component(celery, "Обработчик очереди сообщений", "Python, Django, Celery", "Обрабатывает сообщения из очереди")
+}
+
+Rel(sensor, proxy, "Отправляет данные о своем состоянии")
+Rel(sensor, proxy, "Инициализирует WebSocket соединение")
+Rel(proxy, uvicorn, "Проксирует запросы")
+Rel(proxy, sensor, "Передает датчику WebSocket-сообщение")
+Rel(uvicorn, proxy, "Транслирует  WebSocket-сообщение")
+Rel(uvicorn, fastApiCore, "Транслирует HTTP в ASGI")
+
+Rel(fastApiCore, apiRouter, "Получает результат вызова API")
+Rel(apiRouter, websocketController, "Открывает или закрывает WebSocket соединение")
+
+Rel(celery, websocketController, "Вносит изменения в датчик")
+Rel(websocketController, fastApiCore, "Отправляет данные по открытому WebSocket соединению")
+Rel(fastApiCore, uvicorn, "Транслирует WebSocket-сообщение")
+
+Rel(apiRouter, redis, "Публикует изменение состояния датчиков")
+Rel(celery, redis, "Подписывается на запросы изменения состояния датчиков")
+
+@enduml

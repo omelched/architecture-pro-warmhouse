@@ -1,0 +1,30 @@
+@startuml Component Frontend
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+title C4 Диаграмма компонентов - Пользовательское Веб-приложение
+
+Person(customer, "Пользователь", "Пользователь веб-приложения")
+Container(bffAPI, "Бэкенд для фронтенда", "Python, Django, DRF")
+
+Container_Boundary(frontend, "Frontend SPA") {
+    Component(proxy, "HTTPS сервер", "Nginx", "Публикует статичные файлы приложения")
+    Component(router, "Роутер", "TS, VueRouter", "Монтирует компоненты в DOM, согласно текущему URL")
+    Component(components, "Компоненты интерфейса (множество)", "TS, Vue", "Компоненты пользовательского интерфейса")
+    Component(store, "Хранилище состояния", "TS, Pinia", "Хранит глобальное состояние приложения")
+    Component(bffProvider, "Провайдер API BFF", "TS, Axios", "Реализует общение с BFF API")
+}
+
+Rel(customer, proxy, "Запрашивает веб-приложение в браузер")
+Rel(customer, components, "Взаимодействует с интерфейсом")
+
+Rel(router, components, "Инициализирует и монтирует компоненты")
+Rel(components, router, "Меняют текущий URL")
+
+Rel(components, store, "Изменяют глобальное состояние")
+Rel(store, components, "Реагируют на изменения глобального состояния")
+
+Rel(store, bffProvider, "Запрашивают актуальные данные")
+
+Rel(bffProvider, bffAPI, "Выполняет запрос к BFF")
+
+@enduml

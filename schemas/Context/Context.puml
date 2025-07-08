@@ -1,0 +1,14 @@
+@startuml Context
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+Person_Ext(customer, "Пользователь", "Пользователь умного дома")
+Person(admin, "Администратор сервиса")
+System(warmhouse, "Система Умный Дом")
+System_Ext(temperatureApi, "Сервер API умных датчиков", "temperatureApi")
+System_Ext(sensors, "Зарегистрированные датчики (множество)")
+
+Rel(customer, warmhouse, "Запрашивает актуальные данные телеметрии, передает новое состояние умных датчиков")
+Rel(admin, warmhouse, "Регистрирует умные датчики")
+Rel(warmhouse, temperatureApi, "Запрашивает актуальную температуру")
+Rel(temperatureApi, sensors, "Запрашивает состояние умных датчиков")
+@enduml

@@ -1,0 +1,34 @@
+@startuml Container
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(customer, "Пользователь", "Пользователь системы управления умным домом")
+Container_Ext(sensor, "Датчик", ,"Непосредственно, датчик умного дома")
+
+System_Boundary(warmhouse, "Warmhouse") {
+    Person(admin, "Администратор", "Администратор системы управления умным домом")
+    
+    Container(frontend, "Пользовательское Веб-приложение", "VueJS", "Отрисовывает пользовательский интерфейс как SPA-приложение")
+    Container(bffApi, "Бэкенд для фронтенда", "Python, Django", "Обрабатывает запросы пользователя, рендерит панель администрирования")
+    Container(sensorAgent, "Агент взаимодействия с датчиками", "Python, FastAPI", "Взаимодействует с датчиками по стандартным протоколам")
+    
+    ContainerDb(postgresql, "СУБД", "PostgreSQL", "Хранит данные пользователей и датчиков")
+    ContainerQueue(redis, "Брокер очереди сообщений", "Redis", "Управляет очередью сообщений")
+}
+
+Rel(customer, frontend, "Взаимодействует с приложением")
+Rel(admin, bffApi, "Администрирует приложение")
+Rel(frontend, bffApi, "Запрашивает актуальное состояние", "HTTP, REST API")
+Rel(customer, bffApi, "Взаимодействует с API-интерфейсом", "HTTP, REST API")
+
+Rel(bffApi, postgresql, "Читает / пишет данные в таблицах", "SQL")
+
+Rel(bffApi, redis, "Публикует запросы изменения состояния датчиков", "redis Message")
+Rel(bffApi, redis, "Подписывается на изменения состояния датчиков", "redis Message")
+Rel(sensorAgent, redis, "Публикует изменения состояния датчиков", "redis Message")
+Rel(sensorAgent, redis, "Подписывается на запросы изменения состояния датчиков", "redis Message")
+
+
+Rel(sensorAgent, sensor, "Управляет состоянием датчика", "WebSocket")
+Rel(sensor, sensorAgent, "Отправляет состояние датчика", "HTTP, REST API")
+
+@enduml
